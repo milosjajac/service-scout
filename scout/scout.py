@@ -10,8 +10,8 @@ import time
 from kazoo.client import KazooClient
 from kazoo.exceptions import NoNodeException
 
-from exceptions import ConnectException
-from status import StatusParser
+from scout.exceptions import ConnectException
+from scout.status import StatusParser
 
 CONFS_PATH = '/confs'
 
