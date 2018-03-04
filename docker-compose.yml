@@ -49,6 +49,58 @@ services:
       - "zoo3"
     networks:
       - zk_network
+
+  scout2:
+    build: .
+    hostname: scout2
+    environment:
+      ZK_SERVER: zoo1,zoo2,zoo3
+      ZK_TIMEOUT: 20
+    depends_on:
+      - "zoo1"
+      - "zoo2"
+      - "zoo3"
+    networks:
+      - zk_network
+
+  scout3:
+    build: .
+    hostname: scout3
+    environment:
+      ZK_SERVER: zoo1,zoo2,zoo3
+      ZK_TIMEOUT: 20
+    depends_on:
+      - "zoo1"
+      - "zoo2"
+      - "zoo3"
+    networks:
+      - zk_network
+
+  scout4:
+    build: .
+    hostname: scout4
+    environment:
+      ZK_SERVER: zoo1,zoo2,zoo3
+      ZK_TIMEOUT: 20
+    depends_on:
+      - "zoo1"
+      - "zoo2"
+      - "zoo3"
+    networks:
+      - zk_network
+
+  scout5:
+    build: .
+    hostname: scout5
+    environment:
+      ZK_SERVER: zoo1,zoo2,zoo3
+      ZK_TIMEOUT: 20
+    depends_on:
+      - "zoo1"
+      - "zoo2"
+      - "zoo3"
+    networks:
+      - zk_network
 networks:
   zk_network:
     external: true
