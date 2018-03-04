@@ -1,1 +1,2 @@
+setuptools
 kazoo>=2.4.0

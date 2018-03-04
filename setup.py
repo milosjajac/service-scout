@@ -8,10 +8,11 @@ setup(
     version='1.0.0',
     author='Milos Jajac',
     packages=find_packages(),
+    py_modules=['main'],
     install_requires=open('%s/requirements.txt' % DIR).readlines(),
     entry_points={
         'console_scripts': [
-            'service_scout = scout.scout:main'
+            'service-scout = main:main'
         ]
     }
 )

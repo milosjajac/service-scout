@@ -1,4 +1,3 @@
-import argparse
 import json
 import logging
 import subprocess
@@ -42,14 +41,15 @@ class ScoutsDaemon(threading.Thread):
         if self._zk:
             self.logger.info('[Connection] Kazoo client already started')
         else:
-            self.logger.info('[Connection] Starting up the Kazoo client')
+            self.logger.info('[Connection] Starting Kazoo client (server="%s")' % self._server)
             self._zk = KazooClient(hosts=self._server, timeout=self._timeout)
             self._zk.add_listener(self._conn_listener)
             event = self._zk.start_async()
             event.wait(timeout=self._timeout)
-            self.logger.info('[Connection] Kazoo client successfully connected')
 
-        if not self._zk.connected:
+        if self._zk.connected:
+            self.logger.info('[Connection] Kazoo client successfully connected')
+        else:
             self._zk.stop()
             self._event.set()
             raise ConnectException('Failed connecting to Zookeeper')
@@ -175,28 +175,3 @@ class ServiceScout(threading.Thread):
 
     def _set_full_path(self):
         self._full_path = '%s/%s:%s' % (self._zk_path, socket.gethostname(), self._service_port)
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-z', '--zookeeper', default='localhost:2181',
-                        help='zookeeper server address (defaults to localhost:2181)')
-    parser.add_argument('-t', '--timeout', default=10,
-                        help='timeout for zookeeper connection in seconds (defaults to 10)')
-    # parser.add_argument('-s', '--services', nargs="+", type=str, required=True,
-    #                     help='list of services to keep track of')
-    args = vars(parser.parse_args())
-
-    scouts = ScoutsDaemon(args['zookeeper'], args['timeout'])
-
-    while True and not scouts.terminated:
-        try:
-            time.sleep(1)
-        except KeyboardInterrupt:
-            break
-
-    base_logger.info('Exiting...')
-
-
-if __name__ == '__main__':
-    main()
