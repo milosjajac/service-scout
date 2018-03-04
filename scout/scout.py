@@ -10,7 +10,7 @@ from kazoo.client import KazooClient
 from kazoo.exceptions import NoNodeException
 
 from scout.exceptions import ConnectException
-from scout.status import StatusParser
+from scout.parsers import parse_status
 
 CONFS_PATH = '/confs'
 
@@ -122,7 +122,6 @@ class ServiceScout(threading.Thread):
         self._cached_status = None
 
         self._set_full_path()
-        self._parser = StatusParser()
 
         self._event = threading.Event()
         self.setDaemon(True)
@@ -135,7 +134,7 @@ class ServiceScout(threading.Thread):
                 result = subprocess.run(self._cmd.split(' '), stdout=subprocess.PIPE)
 
                 output = result.stdout.decode('utf-8')
-                status = self._parser.parse(output)
+                status = parse_status(output)
                 self._update(status)
 
                 last_check = time.time()
