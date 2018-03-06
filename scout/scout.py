@@ -38,8 +38,9 @@ class ScoutsDaemon(threading.Thread):
         self.start()
 
     def _connect(self):
-        if self._zk:
-            self.logger.info('[Connection] Kazoo client already started')
+        if self._zk and self._zk.connected:
+            self.logger.info('[Connection] Kazoo client is already running')
+            return
         else:
             self.logger.info('[Connection] Starting Kazoo client (server="%s")' % self._server)
             self._zk = KazooClient(hosts=self._server, timeout=self._timeout)
@@ -66,7 +67,7 @@ class ScoutsDaemon(threading.Thread):
         self._zk.ensure_path(CONFS_PATH)
         self._setup_scouts()
 
-        while True and not self._event.is_set():
+        while not self._event.is_set():
             self._event.wait(1)
 
         for scout in self._scouts.values():
@@ -99,7 +100,6 @@ class ScoutsDaemon(threading.Thread):
             scout = ServiceScout(
                 zk=self._zk,
                 service=service,
-                service_port=conf['service_port'],
                 cmd=conf['cmd'],
                 zk_path=conf['zk_path'],
                 refresh=conf['refresh']
@@ -108,13 +108,12 @@ class ScoutsDaemon(threading.Thread):
 
 
 class ServiceScout(threading.Thread):
-    def __init__(self, zk, service, service_port, cmd, zk_path, refresh=5):
+    def __init__(self, zk, service, cmd, zk_path, refresh=5):
         super(ServiceScout, self).__init__()
         self.logger = base_logger.getChild(self.__class__.__name__)
 
         self._zk = zk
         self._service = service
-        self._service_port = service_port
         self._cmd = cmd
         self._zk_path = zk_path
         self._refresh = refresh
@@ -129,7 +128,7 @@ class ServiceScout(threading.Thread):
 
     def run(self):
         last_check = 0
-        while True and not self._event.is_set():
+        while not self._event.is_set():
             if time.time() - last_check > self._refresh:
                 result = subprocess.run(self._cmd.split(' '), stdout=subprocess.PIPE)
 
@@ -168,9 +167,8 @@ class ServiceScout(threading.Thread):
     def set_conf(self, conf):
         self._cmd = conf['cmd']
         self._refresh = conf['refresh']
-        self._service_port = conf['service_port']
         self._zk_path = conf['zk_path']
         self._set_full_path()
 
     def _set_full_path(self):
-        self._full_path = '%s/%s:%s' % (self._zk_path, socket.gethostname(), self._service_port)
+        self._full_path = '%s/%s' % (self._zk_path, socket.gethostname())

@@ -17,7 +17,7 @@ def main():
 
     scouts = ScoutsDaemon(args['zookeeper'], args['timeout'])
 
-    while True and not scouts.terminated:
+    while not scouts.terminated:
         try:
             time.sleep(1)
         except KeyboardInterrupt:
